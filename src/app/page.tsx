@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import type { githubTypes } from "@opensdks/sdk-github";
 import CommitsList from "@/components/CommitsList";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,6 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { fetchCommits, summarizeCommits } from "./actions";
 
 type Commit = githubTypes["components"]["schemas"]["commit"];
 
@@ -21,6 +20,61 @@ export default function Component() {
   const [commits, setCommits] = useState<Commit[]>([]);
   const [prLink, setPrLink] = useState("");
   const [summary, setSummary] = useState<string | null>("");
+
+  useEffect(() => {
+    updateCommitsAndSummary();
+  }, [prLink])
+
+  async function updateCommitsAndSummary() {
+    const commits = await getCommits();
+    if(!commits){
+      return;
+    }
+    await updateSummary(commits)
+  }
+
+  async function getCommits() {
+    if (!prLink) {
+      return;
+    }
+    const body = JSON.stringify({ prLink })
+    const fetchCommits = await fetch('/api/github', {
+      method: 'POST',
+      body
+    })
+    const { data: { data } } = await fetchCommits.json()
+    console.log(data)
+    setCommits(data)
+    return data
+  }
+
+  async function updateSummary(commits: Commit[]) {
+    const body = JSON.stringify({ commits })
+    const fetchSummery = await fetch('/api/openai', {
+      method: 'POST',
+      body
+    })
+    if (!fetchSummery.ok) {
+      console.log(fetchSummery.statusText)
+      return
+  }
+  if (!fetchSummery.body) {
+      console.log("body error")
+      return
+  }
+    const reader = fetchSummery.body.getReader();    
+    let done = false;
+    const decoder = new TextDecoder()
+    let content = ''
+    while (!done) {
+      const result = await reader.read()
+      done = result.done
+      const chunk = decoder.decode(result.value)
+      content += chunk
+      setSummary(content)
+    }
+    console.log('content:', content)
+  }
 
   return (
     <div className="flex flex-col w-md min-h-screen p-10">
@@ -31,16 +85,6 @@ export default function Component() {
         </p>
         <form
           className="space-y-4"
-          action={async (formData: FormData) => {
-            const prLink = formData.get("pr-link") as string;
-            if (!prLink) {
-              return;
-            }
-            const fetchedCommits = await fetchCommits(prLink);
-            setCommits(fetchedCommits);
-            const summary = await summarizeCommits(fetchedCommits);
-            setSummary(summary);
-          }}
         >
           <div className="space-y-2">
             <Label htmlFor="pr-link">Pull Request Link</Label>
@@ -48,6 +92,7 @@ export default function Component() {
               id="pr-link"
               name="pr-link"
               placeholder="https://github.com/user/repo/pull/123"
+              value={prLink}
               onChange={(e: ChangeEvent<HTMLInputElement>) => {
                 setPrLink(e.target.value);
               }}
