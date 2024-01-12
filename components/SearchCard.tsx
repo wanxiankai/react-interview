@@ -56,8 +56,8 @@ export default function SearchCard() {
             as={React.Fragment}
             afterLeave={() => {
                 // 如果要清除就将搜索结果和文字都清除，这样感觉正常一点
-                // setList([])
-                // setRawQuery('')
+                setList([])
+                setRawQuery('')
             }}
             appear
         >
