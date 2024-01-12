@@ -1,10 +1,7 @@
-import { initSDK } from "@opensdks/runtime";
 import { GithubSDKTypes } from "@opensdks/sdk-github";
-import openaiSdkDef from "@opensdks/sdk-openai";
-import { OpenAIStream, StreamingTextResponse } from 'ai';
+import { OpenAIStream } from 'ai';
 import OpenAI from 'openai';
 
-const apiKey = process.env["OPENAI_API_KEY"];
 type Commit = GithubSDKTypes["components"]["schemas"]["commit"];
 
 const openai = new OpenAI({
@@ -12,12 +9,6 @@ const openai = new OpenAI({
 });
 
 export const runtime = 'edge';
-// const openai = initSDK(openaiSdkDef, {
-//     headers: {
-//         "Content-Type": "application/json",
-//         authorization: `Bearer ${apiKey}`,
-//     },
-// });
 
 export const POST = async (req: Request) => {
   const { commits  } = await req.json()
