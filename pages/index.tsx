@@ -1,8 +1,8 @@
 import type { NextPage } from 'next'
 import Head from 'next/head'
-import Example from '../components/Example'
 import Image from 'next/image'
 import bgImage from '../public/bg.jpg'
+import SearchCard from '../components/SearchCard'
 
 const Home: NextPage = () => {
   return (
@@ -21,8 +21,7 @@ const Home: NextPage = () => {
           className='object-cover object-center'
         />
       </div>
-
-      <Example />
+      <SearchCard />
     </>
   )
 }
