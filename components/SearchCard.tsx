@@ -10,6 +10,10 @@ function formatSearchString(q: string) {
     return q.toLowerCase().replace(/^[#>]/, '')
 }
 
+function trimSpace(str:string){ 
+    return str.replace(/(^\s*)|(\s*$)/g, ""); 
+}
+
 export default function SearchCard() {
     const [open, setOpen] = React.useState(true)
     const router = useRouter()
@@ -24,11 +28,12 @@ export default function SearchCard() {
 
     const [rawQuery, setRawQuery] = React.useState('')
     const [list, setList] = useState<Repository[]>([])
-    const debouncedSearch = useDebounce(rawQuery, 1000)
+    const debouncedSearch = useDebounce(rawQuery, 500)
 
     useEffect(() => {
-        if (debouncedSearch) {
-            const q = formatSearchString(debouncedSearch)
+        const trimQery = trimSpace(debouncedSearch)
+        if (trimQery) {
+            const q = formatSearchString(trimQery)
             getRepos(q)
         }
     }, [debouncedSearch])
@@ -39,6 +44,7 @@ export default function SearchCard() {
         })
         if (!response.ok) {
             console.log("搜索结果出错:", response.statusText)
+            return;
         }
         const { items } = await response.json()
         setList(items)
@@ -48,7 +54,11 @@ export default function SearchCard() {
         <Transition.Root
             show={open}
             as={React.Fragment}
-            afterLeave={() => setRawQuery('')}
+            afterLeave={() => {
+                // 如果要清除就将搜索结果和文字都清除，这样感觉正常一点
+                // setList([])
+                // setRawQuery('')
+            }}
             appear
         >
             <Dialog as="div" className="relative z-10" onClose={setOpen}>
