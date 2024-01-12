@@ -88,7 +88,7 @@ export default function SearchCard() {
                             <Combobox
                                 value=""
                                 onChange={(item: string) => {
-                                    router.push(item)
+                                    window.open(item)
                                 }}
                             >
                                 <div className="relative">
