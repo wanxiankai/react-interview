@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent, useState } from "react";
 import type { githubTypes } from "@opensdks/sdk-github";
 import CommitsList from "@/components/CommitsList";
 import { Button } from "@/components/ui/button";
@@ -21,13 +21,14 @@ export default function Component() {
   const [prLink, setPrLink] = useState("");
   const [summary, setSummary] = useState<string | null>("");
 
-  useEffect(() => {
-    updateCommitsAndSummary();
-  }, [prLink])
+  async function onSubmit(){
+    console.log('current link:', prLink)
+    await updateCommitsAndSummary();
+  }
 
   async function updateCommitsAndSummary() {
     const commits = await getCommits();
-    if(!commits){
+    if (!commits) {
       return;
     }
     await updateSummary(commits)
@@ -57,12 +58,12 @@ export default function Component() {
     if (!fetchSummery.ok) {
       console.log(fetchSummery.statusText)
       return
-  }
-  if (!fetchSummery.body) {
+    }
+    if (!fetchSummery.body) {
       console.log("body error")
       return
-  }
-    const reader = fetchSummery.body.getReader();    
+    }
+    const reader = fetchSummery.body.getReader();
     let done = false;
     const decoder = new TextDecoder()
     let content = ''
@@ -83,9 +84,7 @@ export default function Component() {
         <p className="text-gray-500 dark:text-gray-400 mb-6">
           Enter a GitHub PR link to view a summary of the commits.
         </p>
-        <form
-          className="space-y-4"
-        >
+        <div className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="pr-link">Pull Request Link</Label>
             <Input
@@ -101,11 +100,11 @@ export default function Component() {
           </div>
           <Button
             className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
-            type="submit"
+            onClick={onSubmit}
           >
             Analyze
           </Button>
-        </form>
+        </div>
         <Card className="mt-8 max-w-md">
           <div className="">
             <CardHeader>
